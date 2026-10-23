@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Petualangan Belajar Interactive</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d'
+                        }
+                    },
+                    fontFamily: {
+                        fredoka: ['Fredoka', 'sans-serif'],
+                        sans: ['Plus Jakarta Sans', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        .font-fredoka {
+            font-family: 'Fredoka', sans-serif;
+        }
+        .arcade-btn {
+            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .arcade-btn:active {
+            transform: scale(0.96);
+        }
+        .option-btn.correct {
+            background-color: #10b981 !important;
+            border-color: #059669 !important;
+            color: #ffffff !important;
+        }
+        .option-btn.wrong {
+            background-color: #f43f5e !important;
+            border-color: #e11d48 !important;
+            color: #ffffff !important;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex items-center justify-center p-3 sm:p-6 transition-colors duration-300">
+
+    <div id="app-card" class="w-full max-w-2xl bg-slate-900/90 backdrop-blur-xl border border-slate-800 rounded-3xl p-4 sm:p-8 shadow-2xl relative overflow-hidden transition-colors duration-300">
+        
+        <!-- TOP HEADER NAVBAR -->
+        <header class="flex items-center justify-between pb-4 mb-4 border-b border-slate-800/80">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-indigo-600/20 border border-indigo-500/40 flex items-center justify-center text-indigo-400">
+                    <i class="fa-solid fa-gamepad text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="font-fredoka text-lg sm:text-xl text-slate-800 dark:text-white leading-none">Petualangan Belajar</h1>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Interactive Learning Game</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <button id="btn-back-menu" onclick="goToMenu()" class="hidden py-2 px-3 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-fredoka flex items-center gap-2 transition">
+                    <i class="fa-solid fa-house"></i>
+                    <span data-i18n="backMenuBtn">Menu</span>
+                </button>
+                <button onclick="openSettingsModal()" class="w-10 h-10 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 flex items-center justify-center transition">
+                    <i class="fa-solid fa-gear text-lg"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- MAIN HUB SCREEN -->
+        <div id="screen-hub" class="space-y-6">
+            <!-- Subject Navigation Tabs -->
+            <div class="grid grid-cols-3 gap-2 p-1.5 bg-slate-200 dark:bg-slate-950/80 rounded-2xl border border-slate-300 dark:border-slate-800/80">
+                <button id="subj-tab-math" onclick="selectSubject('math')" class="py-3 px-2 rounded-xl font-fredoka text-xs sm:text-sm flex flex-col sm:flex-row items-center justify-center gap-1.5 transition-all bg-indigo-600 text-white border border-indigo-400/40 shadow-md">
+                    <i class="fa-solid fa-calculator text-base"></i>
+                    <span data-i18n="mathTab">Matematika</span>
+                </button>
+                <button id="subj-tab-indo" onclick="selectSubject('indo')" class="py-3 px-2 rounded-xl font-fredoka text-xs sm:text-sm flex flex-col sm:flex-row items-center justify-center gap-1.5 transition-all text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200">
+                    <i class="fa-solid fa-book text-base"></i>
+                    <span data-i18n="indoTab">B. Indonesia</span>
+                </button>
+                <button id="subj-tab-eng" onclick="selectSubject('eng')" class="py-3 px-2 rounded-xl font-fredoka text-xs sm:text-sm flex flex-col sm:flex-row items-center justify-center gap-1.5 transition-all text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200">
+                    <i class="fa-solid fa-language text-base"></i>
+                    <span data-i18n="engTab">B. Inggris</span>
+                </button>
+            </div>
+
+            <!-- Level Selector Title -->
+            <div class="flex items-center justify-between">
+                <h2 class="font-fredoka text-slate-800 dark:text-white text-base sm:text-lg flex items-center gap-2">
+                    <i class="fa-solid fa-layer-group text-indigo-500 dark:text-indigo-400"></i>
+                    <span data-i18n="selectLevelTitle">Pilih Tingkat Kesulitan</span>
+                </h2>
+            </div>
+
+            <!-- Level Quest Buttons Container -->
+            <div id="level-quest-list" class="grid grid-cols-1 gap-3.5">
+                <!-- Generated by JS -->
+            </div>
+        </div>
+
+        <!-- GAME ARENA SCREEN -->
+        <div id="screen-arena" class="hidden space-y-5">
+            <!-- HUD Stats -->
+            <div class="grid grid-cols-3 gap-3">
+                <div class="bg-slate-100 dark:bg-slate-950/60 p-3 rounded-2xl border border-slate-300 dark:border-slate-800 flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-500 font-bold text-sm">
+                        ⭐
+                    </div>
+                    <div>
+                        <div class="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400" data-i18n="scoreLabel">Skor</div>
+                        <div id="hud-score" class="font-fredoka text-lg text-slate-800 dark:text-white leading-none">0</div>
+                    </div>
+                </div>
+
+                <div class="bg-slate-100 dark:bg-slate-950/60 p-3 rounded-2xl border border-slate-300 dark:border-slate-800 flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-500 font-bold text-sm">
+                        🔥
+                    </div>
+                    <div>
+                        <div class="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400" data-i18n="streakLabel">Streak</div>
+                        <div id="hud-streak" class="font-fredoka text-lg text-slate-800 dark:text-white leading-none">0</div>
+                    </div>
+                </div>
+
+                <div class="bg-slate-100 dark:bg-slate-950/60 p-3 rounded-2xl border border-slate-300 dark:border-slate-800 flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-500 dark:text-indigo-400 font-bold text-sm">
+                        🎯
+                    </div>
+                    <div>
+                        <div class="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400" data-i18n="progressLabel">Soal</div>
+                        <div id="hud-progress" class="font-fredoka text-lg text-slate-800 dark:text-white leading-none">1/10</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="w-full h-2.5 bg-slate-200 dark:bg-slate-950 rounded-full overflow-hidden p-0.5 border border-slate-300 dark:border-slate-800">
+                <div id="arena-progress-bar" class="h-full bg-indigo-500 rounded-full transition-all duration-300 w-0"></div>
+            </div>
+
+            <!-- Question Card -->
+            <div class="bg-slate-100 dark:bg-slate-950/80 border border-slate-300 dark:border-slate-800/80 rounded-3xl p-6 text-center space-y-4">
+                <div id="question-visual-box" class="hidden min-h-[50px] flex items-center justify-center gap-2"></div>
+                <div id="question-text-content" class="font-fredoka text-xl sm:text-2xl text-slate-800 dark:text-white min-h-[60px] flex items-center justify-center">
+                    Loading Question...
+                </div>
+            </div>
+
+            <!-- Options Grid -->
+            <div id="arena-options-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <!-- Generated by JS -->
+            </div>
+
+            <!-- Feedback Msg -->
+            <div id="arena-feedback" class="text-center font-fredoka text-sm sm:text-base min-h-[30px] flex items-center justify-center"></div>
+        </div>
+
+        <!-- SUMMARY SCREEN -->
+        <div id="screen-summary" class="hidden text-center space-y-6 py-4">
+            <div class="w-20 h-20 rounded-3xl bg-amber-500/10 border border-amber-500/30 text-amber-500 flex items-center justify-center text-4xl mx-auto">
+                🏆
+            </div>
+            <div>
+                <h2 class="font-fredoka text-2xl sm:text-3xl text-slate-800 dark:text-white" data-i18n="summaryTitle">Pelajaran Selesai!</h2>
+                <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400" data-i18n="summarySubtitle">Kerja bagus, tetap semangat belajar!</p>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 max-w-sm mx-auto">
+                <div class="bg-slate-100 dark:bg-slate-950/80 p-4 rounded-2xl border border-slate-300 dark:border-slate-800">
+                    <div class="text-xs text-slate-500 dark:text-slate-400" data-i18n="totalScoreLabel">Total Skor</div>
+                    <div id="summary-score" class="font-fredoka text-2xl text-indigo-600 dark:text-indigo-400">0</div>
+                </div>
+                <div class="bg-slate-100 dark:bg-slate-950/80 p-4 rounded-2xl border border-slate-300 dark:border-slate-800">
+                    <div class="text-xs text-slate-500 dark:text-slate-400" data-i18n="accuracyLabel">Akurasi</div>
+                    <div id="summary-accuracy" class="font-fredoka text-2xl text-emerald-500">0%</div>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-center gap-3 pt-2">
+                <button onclick="retryCurrentLevel()" class="py-3 px-6 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl font-fredoka text-sm arcade-btn flex items-center gap-2">
+                    <i class="fa-solid fa-rotate-right"></i>
+                    <span data-i18n="retryBtn">Coba Lagi</span>
+                </button>
+                <button onclick="goToMenu()" class="py-3 px-6 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-white rounded-2xl font-fredoka text-sm arcade-btn flex items-center gap-2">
+                    <i class="fa-solid fa-list"></i>
+                    <span data-i18n="levelListBtn">Daftar Level</span>
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- MODAL SETTINGS -->
+    <div id="modal-settings" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 z-50">
+        <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-3xl p-6 space-y-6 shadow-2xl">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+                <h3 class="font-fredoka text-lg text-white flex items-center gap-2">
+                    <i class="fa-solid fa-sliders text-indigo-400"></i>
+                    <span data-i18n="settingsTitle">Pengaturan Game</span>
+                </h3>
+                <button onclick="closeSettingsModal()" class="text-slate-400 hover:text-white text-xl">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Theme Toggle Option inside Settings -->
+            <div class="space-y-2">
+                <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider" data-i18n="themeLabel">Tampilan Mode</label>
+                <button onclick="toggleTheme()" class="w-full bg-slate-800 hover:bg-slate-700 border border-slate-700 p-3.5 rounded-2xl flex items-center justify-between text-white transition">
+                    <div class="flex items-center gap-3">
+                        <i id="theme-icon" class="fa-solid fa-moon text-indigo-400"></i>
+                        <span id="theme-status-text" class="font-fredoka text-sm">Mode Gelap</span>
+                    </div>
+                    <span class="text-xs bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-2.5 py-1 rounded-lg font-mono" data-i18n="toggleThemeBtn">Ganti</span>
+                </button>
+            </div>
+
+            <!-- Language Settings -->
+            <div class="space-y-2">
+                <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider" data-i18n="languageLabel">Bahasa Aplikasi</label>
+                <div class="grid grid-cols-2 gap-3">
+                    <button id="lang-btn-id" onclick="setAppLanguage('id')" class="py-2.5 px-3 rounded-xl font-fredoka text-sm border flex items-center justify-center gap-2 bg-indigo-600/30 border-indigo-500 text-indigo-300">
+                        🇮🇩 Indonesia
+                    </button>
+                    <button id="lang-btn-en" onclick="setAppLanguage('en')" class="py-2.5 px-3 rounded-xl font-fredoka text-sm border flex items-center justify-center gap-2 bg-slate-800 border-slate-700 text-slate-400">
+                        🇬🇧 English
+                    </button>
+                </div>
+            </div>
+
+            <!-- Volume Settings -->
+            <div class="space-y-2">
+                <div class="flex justify-between items-center text-xs">
+                    <span class="font-semibold text-slate-400 uppercase tracking-wider" data-i18n="volumeLabel">Volume Suara</span>
+                    <span id="volume-indicator" class="text-indigo-400 font-mono">100%</span>
+                </div>
+                <input type="range" min="0" max="100" value="100" oninput="changeVolume(this.value)" class="w-full accent-indigo-500 bg-slate-800 rounded-lg h-2 cursor-pointer">
+            </div>
+
+            <button onclick="closeSettingsModal()" class="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl font-fredoka text-sm transition">
+                <span data-i18n="closeBtn">Simpan & Tutup</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // State Management
+        let currentSubject = 'math'; // 'math', 'indo', 'eng'
+        let currentLevel = 1;
+        let score = 0;
+        let streak = 0;
+        let questionIndex = 0;
+        let maxQuestions = 10;
+        let correctCount = 0;
+        let currentQuestion = null;
+        let isDarkMode = true;
+        let soundVolume = 1.0;
+        let currentLang = 'id';
+
+        const usedHistoryKeys = new Set();
+
+        // Translations Data
+        const translations = {
+            id: {
+                backMenuBtn: "Menu",
+                mathTab: "Matematika",
+                indoTab: "B. Indonesia",
+                engTab: "B. Inggris",
+                selectLevelTitle: "Pilih Tingkat Kesulitan",
+                scoreLabel: "Skor",
+                streakLabel: "Streak",
+                progressLabel: "Soal",
+                summaryTitle: "Pelajaran Selesai!",
+                summarySubtitle: "Kerja bagus, tetap semangat belajar!",
+                totalScoreLabel: "Total Skor",
+                accuracyLabel: "Akurasi",
+                retryBtn: "Coba Lagi",
+                levelListBtn: "Daftar Level",
+                settingsTitle: "Pengaturan Game",
+                themeLabel: "Tampilan Mode",
+                toggleThemeBtn: "Ganti",
+                languageLabel: "Bahasa Aplikasi",
+                volumeLabel: "Volume Suara",
+                closeBtn: "Simpan & Tutup",
+                darkModeText: "Mode Gelap",
+                lightModeText: "Mode Terang",
+
+                level1Title: "Dasar",
+                level2Title: "Menengah",
+                level3Title: "Lanjutan SMP",
+                level4Title: "Lanjutan SMA",
+
+                mathLvl1Desc: "Penjumlahan & Pengurangan Sederhana (1-10)",
+                mathLvl2Desc: "Operasi Puluhan & Perkalian Dasar",
+                mathLvl3Desc: "Aljabar, Akar, Pangkat & Persentase",
+                mathLvl4Desc: "Logaritma, Eksponen & Persamaan Kuadrat",
+
+                indoLvl1Desc: "Huruf, Ejaan & Kosakata Dasar",
+                indoLvl2Desc: "Sinonim, Antonim & Kata Baku",
+                indoLvl3Desc: "Struktur SPOK, Majas & Peribahasa",
+                indoLvl4Desc: "Paragraf, Teks Observasi & Tanda Baca",
+
+                engLvl1Desc: "Kosakata Dasar, Warna, Hewan & Buah",
+                engLvl2Desc: "Lawan Kata, Tenses & Tata Bahasa Dasar",
+                engLvl3Desc: "Past Tense, Kalimat Pasif & Sinonim",
+                engLvl4Desc: "Conditionals, Idiom & Grammar Tingkat Lanjut",
+
+                correctMsg: "🎉 Luar Biasa! Jawabanmu Benar!",
+                wrongMsg: "❌ Jawaban yang benar adalah:"
+            },
+            en: {
+                backMenuBtn: "Menu",
+                mathTab: "Math",
+                indoTab: "Indonesian",
+                engTab: "English",
+                selectLevelTitle: "Select Level Difficulty",
+                scoreLabel: "Score",
+                streakLabel: "Streak",
+                progressLabel: "Question",
+                summaryTitle: "Lesson Completed!",
+                summarySubtitle: "Great job! Keep learning!",
+                totalScoreLabel: "Total Score",
+                accuracyLabel: "Accuracy",
+                retryBtn: "Try Again",
+                levelListBtn: "Level List",
+                settingsTitle: "Game Settings",
+                themeLabel: "Theme Mode",
+                toggleThemeBtn: "Switch",
+                languageLabel: "App Language",
+                volumeLabel: "Sound Volume",
+                closeBtn: "Save & Close",
+                darkModeText: "Dark Mode",
+                lightModeText: "Light Mode",
+
+                level1Title: "Basic",
+                level2Title: "Intermediate",
+                level3Title: "Advanced Middle School",
+                level4Title: "Advanced High School",
+
+                mathLvl1Desc: "Simple Addition & Subtraction (1-10)",
+                mathLvl2Desc: "Double Digits & Basic Multiplication",
+                mathLvl3Desc: "Algebra, Roots, Exponents & Percentage",
+                mathLvl4Desc: "Logarithms, Exponents & Quadratic Equations",
+
+                indoLvl1Desc: "Letters, Spelling & Basic Vocabulary",
+                indoLvl2Desc: "Synonyms, Antonyms & Standard Words",
+                indoLvl3Desc: "Sentence Structure, Figures of Speech",
+                indoLvl4Desc: "Paragraphs, Observation Texts & Punctuation",
+
+                engLvl1Desc: "Basic Words, Colors, Animals & Fruits",
+                engLvl2Desc: "Opposites, Tenses & Basic Grammar",
+                engLvl3Desc: "Past Tense, Passive Voice & Synonyms",
+                engLvl4Desc: "Conditionals, Idioms & Advanced Grammar",
+
+                correctMsg: "🎉 Awesome! Correct!",
+                wrongMsg: "❌ The right answer is:"
+            }
+        };
+
+        const visualIcons = ['🍎', '⭐', '🎈', '🐱', '🚗', '🍬', '🐸', '⚽', '🍕', '🧸', '🚀', '🎨', '🐶', '🍓', '🏀', '🎁'];
+
+        const questionBanks = {
+            indo: {
+                level1: [
+                    { q: "Huruf vokal dalam kata 'KUCING' adalah...", a: "U dan I", opts: ["U dan I", "K dan C", "I dan G", "U dan G"] },
+                    { q: "Ejaan yang benar untuk nama benda tempat duduk adalah...", a: "KURSI", opts: ["KURSI", "KRUSI", "KUSRI", "KUSIR"] },
+                    { q: "Manakah kata yang diawali dengan huruf 'B'?", a: "Buku", opts: ["Buku", "Pena", "Meja", "Pintu"] },
+                    { q: "Kata yang menunjukkan nama tempat adalah...", a: "Sekolah", opts: ["Sekolah", "Lari", "Cantik", "Belajar"] },
+                    { q: "Lawan kata (antonim) dari 'BERSIH' adalah...", a: "Kotor", opts: ["Kotor", "Rapi", "Wangi", "Indah"] },
+                    { q: "Tanda baca yang digunakan untuk mengakhiri kalimat berita adalah...", a: "Titik (.)", opts: ["Titik (.)", "Tanya (?)", "Seru (!)", "Koma (,)"] },
+                    { q: "Manakah yang merupakan kelompok kata hewan?", a: "Kambing, Ayam, Kucing", opts: ["Kambing, Ayam, Kucing", "Buku, Pensil, Meja", "Lari, Jalan, Lompat", "Merah, Kuning, Hijau"] },
+                    { q: "Kata 'MEMBACA' diawali dengan imbuhan...", a: "Me-", opts: ["Me-", "Ber-", "Di-", "Ter-"] },
+                    { q: "Hewan yang menghasilkan susu dan berkaki empat adalah...", a: "Sapi", opts: ["Sapi", "Ayam", "Bebek", "Ikan"] },
+                    { q: "Jumlah huruf vokal dalam alphabet ada...", a: "5", opts: ["5", "21", "26", "10"] },
+                    { q: "Benda yang digunakan untuk mengasah pensil adalah...", a: "Rautan", opts: ["Rautan", "Penghapus", "Penggaris", "Gunting"] },
+                    { q: "Kata 'SAYUR' diawali dengan huruf...", a: "S", opts: ["S", "Y", "R", "A"] },
+                    { q: "Hewan yang dapat terbang dan bertelur adalah...", a: "Burung", opts: ["Burung", "Kelinci", "Kucing", "Kuda"] },
+                    { q: "Warna daun yang segar umumnya adalah...", a: "Hijau", opts: ["Hijau", "Merah", "Kuning", "Biru"] },
+                    { q: "Benda yang kita gunakan untuk menulis di kertas adalah...", a: "Pensil", opts: ["Pensil", "Meja", "Tas", "Sepatu"] },
+                    { q: "Lawan kata dari 'PANAS' adalah...", a: "Dingin", opts: ["Dingin", "Hangat", "Pedas", "Basah"] },
+                    { q: "Ejaan kata yang benar untuk tempat tidur adalah...", a: "KASUR", opts: ["KASUR", "KASRU", "AKSUT", "KASURR"] },
+                    { q: "Huruf pertama dalam kata 'INDONESIA' adalah...", a: "I", opts: ["I", "N", "D", "O"] },
+                    { q: "Pakaian yang dipakai di kaki sebelum sepatu dinamakan...", a: "Kaos Kaki", opts: ["Kaos Kaki", "Sarung Tangan", "Topi", "Celana"] },
+                    { q: "Kata yang menunjukkan warna buah pisang matang adalah...", a: "Kuning", opts: ["Kuning", "Biru", "Hitam", "Ungu"] }
+                ],
+                level2: [
+                    { q: "Sinonim dari kata 'PANDAI' adalah...", a: "Pintar", opts: ["Pintar", "Rajin", "Jujur", "Besar"] },
+                    { q: "Antonim dari kata 'TINGGI' adalah...", a: "Rendah", opts: ["Rendah", "Pendek", "Kecil", "Tipis"] },
+                    { q: "Manakah penulisan kata baku yang benar?", a: "Apotek", opts: ["Apotek", "Apotik", "Apotekh", "Apotikn"] },
+                    { q: "Kata baku yang benar untuk memohon maaf adalah...", a: "Izin", opts: ["Izin", "Ijin", "Idjin", "Isin"] },
+                    { q: "Penggunaan huruf kapital yang benar adalah...", a: "Ibu pergi ke Jakarta.", opts: ["Ibu pergi ke Jakarta.", "ibu pergi ke jakarta.", "Ibu Pergi Ke Jakarta.", "ibu pergi ke Jakarta."] },
+                    { q: "Pribahasa 'Ada udang di balik...'", a: "batu", opts: ["batu", "pintu", "daun", "air"] },
+                    { q: "Kata 'Menulis' jika diubah menjadi kata benda adalah...", a: "Tulisan", opts: ["Tulisan", "Penulis", "Ditulis", "Tuliskan"] },
+                    { q: "Sinonim dari kata 'HEMAT' adalah...", a: "Irit", opts: ["Irit", "Boros", "Kikir", "Cermat"] },
+                    { q: "Kalimat perintah biasanya diakhiri dengan tanda...", a: "Seru (!)", opts: ["Seru (!)", "Tanya (?)", "Titik (.)", "Koma (,)"] },
+                    { q: "Manakah penulisan kata depan yang benar?", a: "di rumah", opts: ["di rumah", "dirumah", "di-rumah", "dihouse"] },
+                    { q: "Manakah penulisan kata baku yang tepat?", a: "Kualitas", opts: ["Kualitas", "Kwalitas", "Kualitash", "Kwalitet"] },
+                    { q: "Antonim dari kata 'LUAS' adalah...", a: "Sempit", opts: ["Sempit", "Kecil", "Pendek", "Dangkal"] },
+                    { q: "Sinonim dari kata 'BERTEMU' adalah...", a: "Berjumpa", opts: ["Berjumpa", "Berpisah", "Berjalan", "Berjanji"] },
+                    { q: "Kata baku yang benar adalah...", a: "Jadwal", opts: ["Jadwal", "Jadual", "Jadwalin", "Jatwal"] },
+                    { q: "Ungkapan 'Murah hati' artinya...", a: "Suka memberi/Suka menolong", opts: ["Suka memberi/Suka menolong", "Sombong", "Pemarah", "Pelit"] },
+                    { q: "Manakah kata baku berikut ini?", a: "Nasihat", opts: ["Nasihat", "Nasehat", "Nasimhat", "Nasehatin"] },
+                    { q: "Penulisan kata depan yang benar di bawah ini adalah...", a: "ke pasar", opts: ["ke pasar", "kepasar", "ke-pasar", "ke'pasar"] },
+                    { q: "Antonim dari kata 'GELAP' adalah...", a: "Terang", opts: ["Terang", "Berani", "Kuning", "Bening"] },
+                    { q: "Kata 'Terbesar' memiliki arti...", a: "Paling besar", opts: ["Paling besar", "Sangat kecil", "Lebih kecil", "Mulai besar"] },
+                    { q: "Manakah penulisan tempat dan tanggal lahir yang benar?", a: "Bandung, 10 Mei 2012", opts: ["Bandung, 10 Mei 2012", "Bandung 10 Mei 2012", "Bandung, 10-Mei-2012", "Bandung. 10 Mei 2012"] }
+                ],
+                level3: [
+                    { q: "SPOK: 'Budi membaca buku di perpustakaan'. Kata 'di perpustakaan' berfungsi sebagai...", a: "Keterangan Tempat", opts: ["Keterangan Tempat", "Objek", "Subjek", "Predikat"] },
+                    { q: "Majas yang membandingkan benda mati seolah-olah hidup disebut...", a: "Personifikasi", opts: ["Personifikasi", "Hiperbola", "Metafora", "Litotes"] },
+                    { q: "Kalimat berikut yang bernilai pasif adalah...", a: "Piring dicuci oleh Ibu", opts: ["Piring dicuci oleh Ibu", "Ibu mencuci piring", "Ayah membaca koran", "Budi menendang bola"] },
+                    { q: "Gabungan dua kata atau lebih yang menghasilkan arti baru disebut...", a: "Ungkapan / Idiom", opts: ["Ungkapan / Idiom", "Sinonim", "Antonim", "Majas"] },
+                    { q: "Gagasan utama dalam suatu paragraf disebut...", a: "Ide Pokok", opts: ["Ide Pokok", "Kalimat Pengembang", "Kesimpulan", "Judul"] },
+                    { q: "Majas yang membesar-besarkan sesuatu disebut...", a: "Hiperbola", opts: ["Hiperbola", "Personifikasi", "Metafora", "Ironi"] },
+                    { q: "Teks yang berisi petunjuk penggunaan atau membuat sesuatu adalah...", a: "Teks Prosedur", opts: ["Teks Prosedur", "Teks Narasi", "Teks Deskripsi", "Teks Eksplanasi"] },
+                    { q: "Sudut pandang pengarang yang menggunakan kata 'Aku' atau 'Saya' disebut...", a: "Orang Pertama", opts: ["Orang Pertama", "Orang Kedua", "Orang Ketiga", "Campuran"] },
+                    { q: "Unsur intrinsik cerita yang berkaitan dengan tempat dan waktu terjadinya peristiwa adalah...", a: "Latar / Setting", opts: ["Latar / Setting", "Tema", "Amanat", "Plot"] },
+                    { q: "Kata bentukan yang tepat dari imbuhan 'me-' + 'sapu' adalah...", a: "Menyapu", opts: ["Menyapu", "Mesapu", "Mempensapu", "MENSAPU"] },
+                    { q: "Peribahasa 'Besar pasak daripada tiang' bermakna...", a: "Pengeluaran lebih besar daripada pendapatan", opts: ["Pengeluaran lebih besar daripada pendapatan", "Suka berhemat", "Selalu beruntung", "Kerja keras tanpa hasil"] },
+                    { q: "Ungkapan 'Kutu buku' bermakna...", a: "Orang yang sangat gemar membaca", opts: ["Orang yang sangat gemar membaca", "Kutu yang ada di buku", "Orang pemalas", "Buku yang sudah tua"] },
+                    { q: "Majas yang menggunakan sindiran secara halus atau berlawanan adalah...", a: "Ironi", opts: ["Ironi", "Hiperbola", "Personifikasi", "Aliterasi"] },
+                    { q: "Bagan urutan kejadian/peristiwa dalam cerita dinamakan...", a: "Alur / Plot", opts: ["Alur / Plot", "Latar", "Tema", "Tokoh"] },
+                    { q: "SPOK: 'Adik menendang bola di lapangan'. Kata 'bola' berposisi sebagai...", a: "Objek", opts: ["Objek", "Subjek", "Predikat", "Keterangan"] },
+                    { q: "Manakah kalimat aktif transitif berikut ini?", a: "Rani memasak nasi di dapur", opts: ["Rani memasak nasi di dapur", "Burung terbang tinggi", "Pintu terbuka sendiri", "Budi tidur nyenyak"] },
+                    { q: "Pesan moral yang ingin disampaikan pengarang dalam cerita disebut...", a: "Amanat", opts: ["Amanat", "Tema", "Sudut Pandang", "Watak"] },
+                    { q: "Penggabungan imbuhan 'me-' + 'pukul' yang benar menjadi...", a: "Memukul", opts: ["Memukul", "Mempukul", "Menpukul", "Mepukul"] },
+                    { q: "Gaya bahasa yang memperbandingkan sesuatu secara langsung tanpa kata pembanding dinamakan...", a: "Metafora", opts: ["Metafora", "Personifikasi", "Simile", "Litotes"] },
+                    { q: "Teks yang berisi pemaparan informasi secara gamblang berdasarkan fakta adalah...", a: "Teks Eksplanasi", opts: ["Teks Eksplanasi", "Teks Fiksi", "Teks Puisi", "Teks Drama"] }
+                ],
+                level4: [
+                    { q: "Penulisan singkatan 'dan lain-lain' yang baku menurut EYD adalah...", a: "dll.", opts: ["dll.", "d.l.l.", "dll", "d.l.l"] },
+                    { q: "Paragraf yang kalimat utamanya berada di awal paragraf disebut...", a: "Paragraf Deduktif", opts: ["Paragraf Deduktif", "Paragraf Induktif", "Paragraf Campuran", "Paragraf Naratif"] },
+                    { q: "Penulisan gelar akademis yang benar sesuai EYD adalah...", a: "Dr. Budi, S.Pd.", opts: ["Dr. Budi, S.Pd.", "Dr Budi SPd", "Dr. Budi. S.Pd", "Dokter Budi S.Pd."] },
+                    { q: "Teks yang menyajikan argumen pro dan kontra terhadap suatu isu dinamakan...", a: "Teks Diskusi", opts: ["Teks Diskusi", "Teks Eksposisi", "Teks Eksplanasi", "Teks Ulasan"] },
+                    { q: "Manakah di bawah ini yang tergolong konjungsi kausalitas (sebab-akibat)?", a: "Oleh karena itu", opts: ["Oleh karena itu", "Dan", "Serta", "Tetapi"] },
+                    { q: "Penulisan kata gabung yang sudah menyatu dan benar adalah...", a: "Kacamata", opts: ["Kacamata", "Kaca mata", "Kaca-mata", "Kacamata-nya"] },
+                    { q: "Sifat dari teks laporan hasil observasi harus bersifat...", a: "Objektif dan Faktual", opts: ["Objektif dan Faktual", "Subjektif dan Opini", "Fiktif dan Imajinatif", "Rahasia dan Tertutup"] },
+                    { q: "Intonasi dan penekanan saat membacakan puisi dinamakan...", a: "Lafal dan Ekspresi", opts: ["Lafal dan Ekspresi", "Sajak", "Bait", "Rima"] },
+                    { q: "Kata 'Nafas' bentuk bakunya menurut KBBI adalah...", a: "Napas", opts: ["Napas", "Nafas", "Napash", "Napasih"] },
+                    { q: "Pernyataan yang memuat pendapat personal seseorang dinamakan...", a: "Opini", opts: ["Opini", "Fakta", "Data", "Statistik"] },
+                    { q: "Paragraf yang kalimat utamanya berada di akhir paragraf dinamakan...", a: "Paragraf Induktif", opts: ["Paragraf Induktif", "Paragraf Deduktif", "Paragraf Deskriptif", "Paragraf Naratif"] },
+                    { q: "Kata baku yang tepat sesuai KBBI untuk tempat perbelanjaan adalah...", a: "Swalayan", opts: ["Swalayan", "Swalayan", "Suwalayan", "Swalayang"] },
+                    { q: "Kalimat efektif berikut ini yang benar adalah...", a: "Rapat itu dihadiri oleh para menteri.", opts: ["Rapat itu dihadiri oleh para menteri.", "Para menteri-menteri hadir dalam rapat.", "Banyak menteri-menteri yang hadir rapat.", "Para menteri hadir rapat itu."] },
+                    { q: "Tanda baca koma (,) digunakan untuk...", a: "Rincian unsur lebih dari dua", opts: ["Rincian unsur lebih dari dua", "Mengakhiri kalimat", "Mengawali kutipan langsung saja", "Mengganti tanda titik"] },
+                    { q: "Manakah kata penyerapan baku yang benar?", a: "Sistem", opts: ["Sistem", "Sistim", "Sistimatis", "Sistematisasi"] },
+                    { q: "Singkatan dari 'dan sebagainya' yang baku adalah...", a: "dsb.", opts: ["dsb.", "d.s.b.", "dsb", "d/s/b"] },
+                    { q: "Ciri khas utama dari teks eksposisi adalah bersifat...", a: "Informatif dan Menjelaskan", opts: ["Informatif dan Menjelaskan", "Menghibur pembaca", "Menceritakan tokoh rekaan", "Berbentuk dialog dialog"] },
+                    { q: "Penulisan tempat dan tanggal surat resmi yang tepat adalah...", a: "Jakarta, 17 Agustus 1945", opts: ["Jakarta, 17 Agustus 1945", "Jakarta 17 Agustus 1945.", "Jakarta: 17 Agustus 1945", "Jakarta/17/Agustus/1945"] },
+                    { q: "Kata 'Aktif' jika diubah menjadi kata benda baku adalah...", a: "Aktivitas", opts: ["Aktivitas", "Aktifitas", "Aktipitas", "Keaktifanitas"] },
+                    { q: "Teks yang berisikan ulasan atau penilaian terhadap sebuah karya film/buku dinamakan...", a: "Teks Resensi / Ulasan", opts: ["Teks Resensi / Ulasan", "Teks Biografi", "Teks Negosiasi", "Teks Anekdot"] }
+                ]
+            },
+            eng: {
+                level1: [
+                    { q: "Bahasa Inggris dari kata 'BUAH APEL' adalah...", a: "Apple", opts: ["Apple", "Banana", "Grape", "Orange"], icon: '🍎' },
+                    { q: "Warna 'MERAH' dalam Bahasa Inggris adalah...", a: "Red", opts: ["Red", "Blue", "Green", "Yellow"] },
+                    { q: "Bahasa Inggris dari hewan 'KUCING' adalah...", a: "Cat", opts: ["Cat", "Dog", "Bird", "Fish"], icon: '🐱' },
+                    { q: "Number '5' in English is...", a: "Five", opts: ["Five", "Four", "Six", "Seven"] },
+                    { q: "Bahasa Inggris dari 'SELAMAT PAGI' adalah...", a: "Good Morning", opts: ["Good Morning", "Good Night", "Good Afternoon", "Good Evening"] },
+                    { q: "What is the English word for 'BUKU'?", a: "Book", opts: ["Book", "Pencil", "Ruler", "Eraser"] },
+                    { q: "The color of the sky on a sunny day is...", a: "Blue", opts: ["Blue", "Red", "Black", "Yellow"] },
+                    { q: "Bahasa Inggris dari 'SAPI' adalah...", a: "Cow", opts: ["Cow", "Goat", "Horse", "Pig"] },
+                    { q: "Bahasa Inggris dari 'PINTU' adalah...", a: "Door", opts: ["Door", "Window", "Table", "Chair"] },
+                    { q: "English word for 'AIR' is...", a: "Water", opts: ["Water", "Fire", "Earth", "Wind"] },
+                    { q: "Bahasa Inggris dari 'PENSIL' adalah...", a: "Pencil", opts: ["Pencil", "Pen", "Eraser", "Sharpener"], icon: '✏️' },
+                    { q: "English word for 'ANJING' is...", a: "Dog", opts: ["Dog", "Cat", "Rabbit", "Duck"], icon: '🐶' },
+                    { q: "What color is a BANANA?", a: "Yellow", opts: ["Yellow", "Purple", "Pink", "White"] },
+                    { q: "Number '10' in English is...", a: "Ten", opts: ["Ten", "Nine", "Twelve", "Eight"] },
+                    { q: "English word for 'SEPATU' is...", a: "Shoes", opts: ["Shoes", "Socks", "Hat", "Shirt"] },
+                    { q: "Bahasa Inggris dari 'IKAN' adalah...", a: "Fish", opts: ["Fish", "Frog", "Bird", "Snake"] },
+                    { q: "How do you say 'TERIMA KASIH' in English?", a: "Thank you", opts: ["Thank you", "Sorry", "Please", "Hello"] },
+                    { q: "Bahasa Inggris dari 'MATAHARI' adalah...", a: "Sun", opts: ["Sun", "Moon", "Star", "Cloud"] },
+                    { q: "English word for 'MOBIL' is...", a: "Car", opts: ["Car", "Bus", "Bike", "Train"], icon: '🚗' },
+                    { q: "Bahasa Inggris dari 'SELAMAT MALAM' (saat hendak tidur) adalah...", a: "Good Night", opts: ["Good Night", "Good Morning", "Good Day", "Good Afternoon"] }
+                ],
+                level2: [
+                    { q: "Opposite of 'BIG' is...", a: "Small", opts: ["Small", "Tall", "Short", "Long"] },
+                    { q: "She ___ to school every day.", a: "goes", opts: ["goes", "go", "went", "gone"] },
+                    { q: "Plural form of 'CHILD' is...", a: "Children", opts: ["Children", "Childs", "Childes", "Childrens"] },
+                    { q: "They ___ playing football right now.", a: "are", opts: ["are", "is", "am", "was"] },
+                    { q: "Past tense of 'EAT' is...", a: "Ate", opts: ["Ate", "Eaten", "Eats", "Eating"] },
+                    { q: "Opposite of 'HAPPY' is...", a: "Sad", opts: ["Sad", "Angry", "Tired", "Bored"] },
+                    { q: "How many days are there in a week?", a: "Seven", opts: ["Seven", "Five", "Six", "Eight"] },
+                    { q: "Which one is a FRUIT?", a: "Mango", opts: ["Mango", "Carrot", "Potato", "Onion"] },
+                    { q: "I ___ a doctor when I grow up.", a: "want to be", opts: ["want to be", "am", "was", "been"] },
+                    { q: "Opposite of 'HOT' is...", a: "Cold", opts: ["Cold", "Warm", "Cool", "Dry"] },
+                    { q: "Past tense of 'RUN' is...", a: "Ran", opts: ["Ran", "Runned", "Running", "Runs"] },
+                    { q: "Opposite of 'FAST' is...", a: "Slow", opts: ["Slow", "Quick", "Hard", "Weak"] },
+                    { q: "We ___ students.", a: "are", opts: ["are", "is", "am", "be"] },
+                    { q: "What is the capital city of Indonesia?", a: "Jakarta", opts: ["Jakarta", "Bali", "Surabaya", "Bandung"] },
+                    { q: "Plural form of 'FOOT' is...", a: "Feet", opts: ["Feet", "Foots", "Feets", "Footes"] },
+                    { q: "She ___ reading a comic book.", a: "is", opts: ["is", "are", "am", "were"] },
+                    { q: "Opposite of 'STRONG' is...", a: "Weak", opts: ["Weak", "Hard", "Brave", "Tall"] },
+                    { q: "Past tense of 'GO' is...", a: "Went", opts: ["Went", "Gone", "Goes", "Going"] },
+                    { q: "Look! My cat is ___ under the table.", a: "sleeping", opts: ["sleeping", "sleeps", "slept", "sleep"] },
+                    { q: "Synonym of 'FAST' is...", a: "Quick", opts: ["Quick", "Slow", "Quiet", "Heavy"] }
+                ],
+                level3: [
+                    { q: "Yesterday, I ___ a new book.", a: "bought", opts: ["bought", "buy", "buying", "buys"] },
+                    { q: "Passive Voice: 'John built the house' becomes...", a: "The house was built by John", opts: ["The house was built by John", "The house is built by John", "John was built the house", "The house built John"] },
+                    { q: "Synonym of 'BEAUTIFUL' is...", a: "Pretty", opts: ["Pretty", "Ugly", "Smart", "Brave"] },
+                    { q: "He is the ___ student in the class.", a: "smartest", opts: ["smartest", "smarter", "more smart", "most smart"] },
+                    { q: "We have lived here ___ 2010.", a: "since", opts: ["since", "for", "from", "during"] },
+                    { q: "Look at the clouds! It ___ rain soon.", a: "is going to", opts: ["is going to", "will be", "was", "would"] },
+                    { q: "The comparative form of 'GOOD' is...", a: "Better", opts: ["Better", "Gooder", "Best", "More good"] },
+                    { q: "She didn't ___ to the party last night.", a: "come", opts: ["come", "came", "coming", "comes"] },
+                    { q: "The person who flies an airplane is called a...", a: "Pilot", opts: ["Pilot", "Doctor", "Chef", "Driver"] },
+                    { q: "Antonym of 'ANCIENT' is...", a: "Modern", opts: ["Modern", "Old", "Historic", "Traditional"] },
+                    { q: "They have ___ English for three years.", a: "studied", opts: ["studied", "study", "studying", "studies"] },
+                    { q: "The sun ___ in the east.", a: "rises", opts: ["rises", "rise", "rising", "rose"] },
+                    { q: "Passive Voice: 'She waters the flowers' becomes...", a: "The flowers are watered by her", opts: ["The flowers are watered by her", "The flowers was watered by her", "She was watered the flowers", "The flowers watered her"] },
+                    { q: "Superlative form of 'EXPENSIVE' is...", a: "Most expensive", opts: ["Most expensive", "More expensive", "Expensivest", "Much expensive"] },
+                    { q: "While I was studying, my mother ___ dinner.", a: "was cooking", opts: ["was cooking", "cooked", "cooks", "is cooking"] },
+                    { q: "Synonym of 'INTELLIGENT' is...", a: "Smart", opts: ["Smart", "Foolish", "Lazy", "Kind"] },
+                    { q: "If you heat ice, it ___.", a: "melts", opts: ["melts", "melted", "will melt", "melting"] },
+                    { q: "He was absent from class ___ he was sick.", a: "because", opts: ["because", "although", "but", "so"] },
+                    { q: "The book ___ is on the table belongs to me.", a: "which", opts: ["which", "who", "whom", "whose"] },
+                    { q: "Antonym of 'GENEROUS' is...", a: "Stingy", opts: ["Stingy", "Kind", "Polite", "Humble"] }
+                ],
+                level4: [
+                    { q: "If I ___ rich, I would travel around the world.", a: "were", opts: ["were", "was", "am", "been"] },
+                    { q: "What does the idiom 'A piece of cake' mean?", a: "Very easy", opts: ["Very easy", "Very hard", "Delicious food", "A big problem"] },
+                    { q: "Had I known about the test, I ___ harder.", a: "would have studied", opts: ["would have studied", "will study", "studied", "would study"] },
+                    { q: "Neither the manager nor the employees ___ present.", a: "were", opts: ["were", "was", "is", "be"] },
+                    { q: "Despite ___ tired, she finished the report.", a: "being", opts: ["being", "be", "was", "been"] },
+                    { q: "What is the meaning of 'Break a leg'?", a: "Good luck", opts: ["Good luck", "Get hurt", "Run fast", "Stop working"] },
+                    { q: "The word 'AMBIGUOUS' means...", a: "Unclear or open to interpretation", opts: ["Unclear or open to interpretation", "Very clear", "Dangerous", "Friendly"] },
+                    { q: "By next year, I ___ my degree.", a: "will have completed", opts: ["will have completed", "completed", "will complete", "complete"] },
+                    { q: "She insisted on ___ for the dinner.", a: "paying", opts: ["paying", "to pay", "pay", "paid"] },
+                    { q: "Antonym of 'SCARCE' is...", a: "Abundant", opts: ["Abundant", "Rare", "Limited", "Empty"] },
+                    { q: "What does the idiom 'Once in a blue moon' mean?", a: "Very rarely", opts: ["Very rarely", "Every night", "Frequently", "On full moon day"] },
+                    { q: "Seldom ___ such a remarkable performance.", a: "have I seen", opts: ["have I seen", "I have seen", "I saw", "did I saw"] },
+                    { q: "If she had started earlier, she ___ the train.", a: "wouldn't have missed", opts: ["wouldn't have missed", "won't miss", "doesn't miss", "wouldn't miss"] },
+                    { q: "The government plans to ___ new policies next month.", a: "implement", opts: ["implement", "imply", "implant", "impress"] },
+                    { q: "Meaning of 'Bite the bullet':", a: "Face a difficult situation bravely", opts: ["Face a difficult situation bravely", "Eat fast", "Avoid danger", "Start a fight"] },
+                    { q: "Not only ___ brilliant, but he is also humble.", a: "is he", opts: ["is he", "he is", "was he", "he was"] },
+                    { q: "The teacher suggested that he ___ the exam.", a: "retake", opts: ["retake", "retakes", "retook", "retaking"] },
+                    { q: "Antonym of 'METICULOUS' is...", a: "Careless", opts: ["Careless", "Thorough", "Detailed", "Cautious"] },
+                    { q: "It is essential that everyone ___ the safety guidelines.", a: "follow", opts: ["follow", "follows", "followed", "following"] },
+                    { q: "What does 'Under the weather' mean?", a: "Feeling unwell or sick", opts: ["Feeling unwell or sick", "Enjoying rain", "In bad condition", "Cold weather"] }
+                ]
+            }
+        };
+
+        // Theme Toggle Functionality
+        function toggleTheme() {
+            isDarkMode = !isDarkMode;
+            applyTheme();
+        }
+
+        function applyTheme() {
+            const html = document.documentElement;
+            const appCard = document.getElementById('app-card');
+            const icon = document.getElementById('theme-icon');
+            const statusText = document.getElementById('theme-status-text');
+
+            if (isDarkMode) {
+                html.classList.add('dark');
+                document.body.classList.remove('bg-slate-100', 'text-slate-900');
+                document.body.classList.add('bg-slate-950', 'text-slate-100');
+                
+                if (appCard) {
+                    appCard.classList.remove('bg-white', 'border-slate-200');
+                    appCard.classList.add('bg-slate-900/90', 'border-slate-800');
+                }
+
+                if (icon) icon.className = "fa-solid fa-moon text-indigo-400";
+                if (statusText) statusText.innerText = translations[currentLang].darkModeText || "Mode Gelap";
+            } else {
+                html.classList.remove('dark');
+                document.body.classList.remove('bg-slate-950', 'text-slate-100');
+                document.body.classList.add('bg-slate-100', 'text-slate-900');
+                
+                if (appCard) {
+                    appCard.classList.remove('bg-slate-900/90', 'border-slate-800');
+                    appCard.classList.add('bg-white', 'border-slate-200');
+                }
+
+                if (icon) icon.className = "fa-solid fa-sun text-amber-500";
+                if (statusText) statusText.innerText = translations[currentLang].lightModeText || "Mode Terang";
+            }
+
+            if (!document.getElementById('screen-hub').classList.contains('hidden')) {
+                renderLevelCards();
+            }
+        }
+
+        function renderLevelCards() {
+            const container = document.getElementById('level-quest-list');
+            const txt = translations[currentLang];
+
+            const lvlTitles = [
+                txt.level1Title,
+                txt.level2Title,
+                txt.level3Title,
+                txt.level4Title
+            ];
+
+            let lvlDescs = [];
+            if (currentSubject === 'math') {
+                lvlDescs = [txt.mathLvl1Desc, txt.mathLvl2Desc, txt.mathLvl3Desc, txt.mathLvl4Desc];
+            } else if (currentSubject === 'indo') {
+                lvlDescs = [txt.indoLvl1Desc, txt.indoLvl2Desc, txt.indoLvl3Desc, txt.indoLvl4Desc];
+            } else {
+                lvlDescs = [txt.engLvl1Desc, txt.engLvl2Desc, txt.engLvl3Desc, txt.engLvl4Desc];
+            }
+
+            const subjectIcons = ['🌱', '⚡', '🎓', '🏆'];
+
+            container.innerHTML = [1, 2, 3, 4].map((lvl, idx) => `
+                <button onclick="startQuiz(${lvl})" class="w-full bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 border-2 border-slate-300 dark:border-slate-800 hover:border-indigo-500/60 p-4 rounded-2xl text-left arcade-btn flex items-center justify-between group transition">
+                    <div class="flex items-center gap-3.5">
+                        <div class="w-12 h-12 rounded-xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-xl group-hover:scale-110 transition">
+                            ${subjectIcons[idx]}
+                        </div>
+                        <div>
+                            <div class="font-fredoka text-base text-slate-800 dark:text-white flex items-center gap-2">
+                                <span>Tingkat ${lvl}: ${lvlTitles[idx]}</span>
+                            </div>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">${lvlDescs[idx]}</p>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-circle-play text-xl text-indigo-500 dark:text-indigo-400 group-hover:scale-110 transition"></i>
+                </button>
+            `).join('');
+        }
+
+        function selectSubject(subj) {
+            currentSubject = subj;
+            
+            ['math', 'indo', 'eng'].forEach(s => {
+                const tab = document.getElementById(`subj-tab-${s}`);
+                if (s === subj) {
+                    tab.className = "py-3 px-2 rounded-xl font-fredoka text-xs sm:text-sm flex flex-col sm:flex-row items-center justify-center gap-1.5 transition-all bg-indigo-600 text-white border border-indigo-400/40 shadow-md";
+                } else {
+                    tab.className = "py-3 px-2 rounded-xl font-fredoka text-xs sm:text-sm flex flex-col sm:flex-row items-center justify-center gap-1.5 transition-all text-slate-400 hover:text-slate-200";
+                }
+            });
+
+            renderLevelCards();
+        }
+
+        function generateMathQuestion(lvl) {
+            let qText = "";
+            let answer = 0;
+            let visual = null;
+
+            if (lvl === 1) {
+                const icon = visualIcons[Math.floor(Math.random() * visualIcons.length)];
+                if (Math.random() < 0.5) {
+                    const n1 = Math.floor(Math.random() * 8) + 1;
+                    const n2 = Math.floor(Math.random() * 6) + 1;
+                    answer = n1 + n2;
+                    qText = `${n1} + ${n2} = ?`;
+                    visual = { type: 'add', n1, n2, icon };
+                } else {
+                    const n1 = Math.floor(Math.random() * 8) + 4;
+                    const n2 = Math.floor(Math.random() * (n1 - 1)) + 1;
+                    answer = n1 - n2;
+                    qText = `${n1} - ${n2} = ?`;
+                    visual = { type: 'sub', n1, n2, icon };
+                }
+            } else if (lvl === 2) {
+                const randType = Math.random();
+                if (randType < 0.33) {
+                    const n1 = Math.floor(Math.random() * 40) + 10;
+                    const n2 = Math.floor(Math.random() * 30) + 5;
+                    answer = n1 + n2;
+                    qText = `${n1} + ${n2} = ?`;
+                } else if (randType < 0.66) {
+                    const n1 = Math.floor(Math.random() * 10) + 2;
+                    const n2 = Math.floor(Math.random() * 9) + 2;
+                    answer = n1 * n2;
+                    qText = `${n1} × ${n2} = ?`;
+                } else {
+                    const n2 = Math.floor(Math.random() * 9) + 2;
+                    const ansTemp = Math.floor(Math.random() * 9) + 2;
+                    const n1 = n2 * ansTemp;
+                    answer = ansTemp;
+                    qText = `${n1} ÷ ${n2} = ?`;
+                }
+            } else if (lvl === 3) {
+                const randType = Math.random();
+                if (randType < 0.33) {
+                    const x = Math.floor(Math.random() * 10) + 1;
+                    const a = Math.floor(Math.random() * 5) + 2;
+                    const b = Math.floor(Math.random() * 10) + 1;
+                    answer = x;
+                    qText = `<span class="text-xs text-slate-400 block mb-1">Cari nilai x:</span> ${a}x + ${b} = ${(a*x)+b}`;
+                } else if (randType < 0.66) {
+                    const sq = Math.floor(Math.random() * 12) + 2;
+                    const add = Math.floor(Math.random() * 20) + 2;
+                    answer = sq + add;
+                    qText = `√${sq * sq} + ${add} = ?`;
+                } else {
+                    const total = (Math.floor(Math.random() * 8) + 1) * 100;
+                    const pct = (Math.floor(Math.random() * 5) + 1) * 10;
+                    answer = (total * pct) / 100;
+                    qText = `${pct}% dari ${total} adalah...`;
+                }
+            } else {
+                const randType = Math.random();
+                if (randType < 0.4) {
+                    const base = Math.floor(Math.random() * 4) + 2;
+                    const exp = Math.floor(Math.random() * 3) + 2;
+                    answer = exp;
+                    qText = `<span class="text-xs text-slate-400 block mb-1">Logaritma:</span> <sup>${base}</sup>log(${Math.pow(base, exp)}) = ?`;
+                } else if (randType < 0.7) {
+                    const a = Math.floor(Math.random() * 6) + 2;
+                    const b = Math.floor(Math.random() * 3) + 2;
+                    answer = Math.pow(a, b);
+                    qText = `<span class="text-xs text-slate-400 block mb-1">Eksponen:</span> ${a}<sup>${b}</sup> = ?`;
+                } else {
+                    const x1 = Math.floor(Math.random() * 5) + 1;
+                    const x2 = Math.floor(Math.random() * 5) + 1;
+                    const sum = x1 + x2;
+                    const prod = x1 * x2;
+                    answer = x1;
+                    qText = `<span class="text-xs text-slate-400 block mb-1">Akar Persamaan Kuadrat (x<sup>2</sup> - ${sum}x + ${prod} = 0):</span> Salah satu nilai x = ?`;
+                }
+            }
+
+            const opts = new Set([answer]);
+            while (opts.size < 4) {
+                let fake = answer + (Math.floor(Math.random() * 5) + 1) * (Math.random() > 0.5 ? 1 : -1);
+                if (fake >= 0) opts.add(fake);
+            }
+
+            return {
+                text: qText,
+                answer,
+                options: Array.from(opts).sort(() => Math.random() - 0.5),
+                visual
+            };
+        }
+
+        function getNextQuestion() {
+            let qObj = null;
+
+            if (currentSubject === 'math') {
+                qObj = generateMathQuestion(currentLevel);
+            } else {
+                const bank = questionBanks[currentSubject][`level${currentLevel}`];
+                let unused = bank.filter(q => !usedHistoryKeys.has(q.q));
+                if (unused.length === 0) {
+                    usedHistoryKeys.clear();
+                    unused = bank;
+                }
+                const selected = unused[Math.floor(Math.random() * unused.length)];
+                usedHistoryKeys.add(selected.q);
+
+                qObj = {
+                    text: selected.q,
+                    answer: selected.a,
+                    options: [...selected.opts].sort(() => Math.random() - 0.5),
+                    visual: selected.icon ? { type: 'icon', icon: selected.icon } : null
+                };
+            }
+
+            return qObj;
+        }
+
+        function showScreen(id) {
+            ['screen-hub', 'screen-arena', 'screen-summary'].forEach(s => {
+                document.getElementById(s).classList.add('hidden');
+            });
+            document.getElementById(id).classList.remove('hidden');
+
+            const backBtn = document.getElementById('btn-back-menu');
+            if (id === 'screen-hub') {
+                backBtn.classList.add('hidden');
+            } else {
+                backBtn.classList.remove('hidden');
+            }
+        }
+
+        function startQuiz(lvl) {
+            currentLevel = lvl;
+            score = 0;
+            streak = 0;
+            questionIndex = 0;
+            correctCount = 0;
+            usedHistoryKeys.clear();
+
+            showScreen('screen-arena');
+            renderQuestion();
+        }
+
+        function updateHUD() {
+            document.getElementById('hud-score').innerText = score;
+            document.getElementById('hud-streak').innerText = streak;
+            document.getElementById('hud-progress').innerText = `${questionIndex + 1}/${maxQuestions}`;
+            const pct = Math.min(100, Math.round(((questionIndex) / maxQuestions) * 100));
+            document.getElementById('arena-progress-bar').style.width = `${pct}%`;
+        }
+
+        function renderQuestion() {
+            if (questionIndex >= maxQuestions) {
+                showSummary();
+                return;
+            }
+
+            updateHUD();
+            currentQuestion = getNextQuestion();
+
+            const visBox = document.getElementById('question-visual-box');
+            if (currentQuestion.visual) {
+                visBox.classList.remove('hidden');
+                if (currentQuestion.visual.type === 'add') {
+                    visBox.innerHTML = `<span class="text-2xl">${Array(currentQuestion.visual.n1).fill(currentQuestion.visual.icon).join(' ')}</span> <span class="text-indigo-400 font-bold mx-1">+</span> <span class="text-2xl">${Array(currentQuestion.visual.n2).fill(currentQuestion.visual.icon).join(' ')}</span>`;
+                } else if (currentQuestion.visual.type === 'sub') {
+                    visBox.innerHTML = `<span class="text-2xl">${Array(currentQuestion.visual.n1).fill(currentQuestion.visual.icon).join(' ')}</span> <span class="text-indigo-400 font-bold mx-1">-</span> <span class="text-2xl">${Array(currentQuestion.visual.n2).fill(currentQuestion.visual.icon).join(' ')}</span>`;
+                } else if (currentQuestion.visual.type === 'icon') {
+                    visBox.innerHTML = `<span class="text-4xl">${currentQuestion.visual.icon}</span>`;
+                }
+            } else {
+                visBox.classList.add('hidden');
+                visBox.innerHTML = '';
+            }
+
+            document.getElementById('question-text-content').innerHTML = currentQuestion.text;
+
+            const grid = document.getElementById('arena-options-grid');
+            grid.innerHTML = '';
+
+            currentQuestion.options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = "option-btn bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 border-2 border-slate-300 dark:border-slate-800 hover:border-indigo-500/60 p-4 rounded-2xl font-fredoka text-lg text-slate-800 dark:text-white arcade-btn min-h-[60px] flex items-center justify-center";
+                btn.innerHTML = opt;
+                btn.onclick = () => checkAnswer(opt, btn);
+                grid.appendChild(btn);
+            });
+
+            document.getElementById('arena-feedback').innerText = '';
+        }
+
+        function checkAnswer(selectedOpt, btnEl) {
+            const allBtns = document.querySelectorAll('#arena-options-grid button');
+            allBtns.forEach(b => b.disabled = true);
+
+            const isCorrect = String(selectedOpt).trim() === String(currentQuestion.answer).trim();
+
+            if (isCorrect) {
+                playSound('correct');
+                btnEl.classList.add('correct');
+                score += 10 + (streak * 2);
+                streak++;
+                correctCount++;
+
+                document.getElementById('arena-feedback').innerText = translations[currentLang].correctMsg;
+                document.getElementById('arena-feedback').className = "mt-4 text-center font-fredoka text-sm sm:text-base min-h-[30px] flex items-center justify-center text-emerald-400 animate-bounce";
+            } else {
+                playSound('wrong');
+                btnEl.classList.add('wrong');
+                streak = 0;
+
+                allBtns.forEach(b => {
+                    if (String(b.innerText).trim() === String(currentQuestion.answer).trim()) {
+                        b.classList.add('correct');
+                    }
+                });
+
+                document.getElementById('arena-feedback').innerText = `${translations[currentLang].wrongMsg} ${currentQuestion.answer}`;
+                document.getElementById('arena-feedback').className = "mt-4 text-center font-fredoka text-sm sm:text-base min-h-[30px] flex items-center justify-center text-rose-400";
+            }
+
+            questionIndex++;
+            setTimeout(() => {
+                renderQuestion();
+            }, 1200);
+        }
+
+        function showSummary() {
+            playSound('win');
+            showScreen('screen-summary');
+
+            const accuracy = Math.round((correctCount / maxQuestions) * 100);
+            document.getElementById('summary-score').innerText = score;
+            document.getElementById('summary-accuracy').innerText = `${accuracy}%`;
+
+            if (accuracy >= 80) {
+                try { confetti({ particleCount: 80, spread: 60, origin: { y: 0.6 } }); } catch(e){}
+            }
+        }
+
+        function playSound(type) {
+            if (soundVolume <= 0) return;
+            try {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (!AudioContext) return;
+                const ctx = new AudioContext();
+
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+
+                if (type === 'correct') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(523.25, ctx.currentTime);
+                    osc.frequency.setValueAtTime(659.25, ctx.currentTime + 0.1);
+                    gain.gain.setValueAtTime(soundVolume * 0.3, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+                } else if (type === 'wrong') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(220, ctx.currentTime);
+                    osc.frequency.setValueAtTime(160, ctx.currentTime + 0.15);
+                    gain.gain.setValueAtTime(soundVolume * 0.3, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+                }
+
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.3);
+            } catch(e){}
+        }
+
+        function retryCurrentLevel() {
+            startQuiz(currentLevel);
+        }
+
+        function goToMenu() {
+            showScreen('screen-hub');
+            renderLevelCards();
+        }
+
+        function openSettingsModal() {
+            document.getElementById('modal-settings').classList.remove('hidden');
+        }
+
+        function closeSettingsModal() {
+            document.getElementById('modal-settings').classList.add('hidden');
+        }
+
+        function setAppLanguage(lang) {
+            currentLang = lang;
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (translations[lang][key]) el.innerText = translations[lang][key];
+            });
+
+            applyTheme();
+
+            const btnId = document.getElementById('lang-btn-id');
+            const btnEn = document.getElementById('lang-btn-en');
+            if (lang === 'id') {
+                btnId.className = "py-2.5 px-3 rounded-xl font-fredoka text-sm border flex items-center justify-center gap-2 bg-indigo-600/30 border-indigo-500 text-indigo-300";
+                btnEn.className = "py-2.5 px-3 rounded-xl font-fredoka text-sm border flex items-center justify-center gap-2 bg-slate-800 border-slate-700 text-slate-400";
+            } else {
+                btnEn.className = "py-2.5 px-3 rounded-xl font-fredoka text-sm border flex items-center justify-center gap-2 bg-indigo-600/30 border-indigo-500 text-indigo-300";
+                btnId.className = "py-2.5 px-3 rounded-xl font-fredoka text-sm border flex items-center justify-center gap-2 bg-slate-800 border-slate-700 text-slate-400";
+            }
+
+            renderLevelCards();
+        }
+
+        function changeVolume(val) {
+            soundVolume = val / 100;
+            document.getElementById('volume-indicator').innerText = `${val}%`;
+        }
+
+        window.onload = function() {
+            renderLevelCards();
+        };
+    </script>
+</body>
+</html>
